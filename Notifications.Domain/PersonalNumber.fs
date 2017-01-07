@@ -10,7 +10,7 @@ module PersonalNumberParser =
         sprintf "%s-%s%i" birthPart birthNumber controlNumber
 
     type PersonalNumber = {BirthPart : string; BirthNumber : string; ControlNumber : int; Age : Age} with
-        member this.ToString = pnrStandardFormat this.BirthPart this.BirthNumber this.ControlNumber
+         override  this.ToString () = pnrStandardFormat this.BirthPart this.BirthNumber this.ControlNumber
 
     let create bp bn c a = 
         {PersonalNumber.BirthPart = bp; Age = a; BirthNumber = bn; ControlNumber = c}
@@ -52,14 +52,14 @@ module PersonalNumberParser =
         |> checkSiffra
         |> sameNumber p.ControlNumber
         |> function
-            | Some x -> Some p
-            | None -> None
+            | Some x -> Success p
+            | None -> Failed "Incorrect checksum"
 
     let pnas bpStr nrStr cStr age = 
-        maybe{
-                    let! bp = strToSomeInt bpStr 
-                    let! nr = strToSomeInt nrStr
-                    let! c = strToSomeInt cStr
+        Result.maybe{
+                    let! bp = strToResultInt bpStr 
+                    let! nr = strToResultInt nrStr
+                    let! c = strToResultInt cStr
                     let! pnr = create bpStr nrStr c age |> verifyPersonalNumber 
                     return pnr
         }
@@ -73,7 +73,7 @@ module PersonalNumberParser =
                          if 20 - i > 0 
                             then p Over100Years 
                             else p Under100Years
-                    | None -> None
+                    | None -> Failed "Invalid input"
                
             | 11 -> 
                 let sep = s.[6]  
@@ -81,10 +81,10 @@ module PersonalNumberParser =
                 match sep with 
                         | '-' -> p Over100Years 
                         | '+' -> p Under100Years  
-                        | _ -> None
+                        | _ -> Failed "Invalid input"
             | 10 -> 
                 let p = pnas s.[0..5] s.[6..8] (s.[9].ToString())
                 p Unknown               
-            | _ -> None
+            | _ -> Failed "Invalid input"
 
      

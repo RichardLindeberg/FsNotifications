@@ -80,9 +80,9 @@ let commandHandler store cmd =
             | RemoveToken x -> x.PersonalNumber
             | RemoveTokenDueToDuplcate x -> x.PersonalNumber
    
-    let pnrToStreamId =
-        function 
-            | PersonalNumber x -> sprintf "Person-%s" x
+    let pnrToStreamId (p : PersonalNumberParser.PersonalNumber)  =
+        p.ToString()
+        
 
     Result.maybe{
        let streamId =  cmd |> cmdKey |> pnrToStreamId

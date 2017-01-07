@@ -3,6 +3,7 @@ open Notifications.Domain
 
 open NEventStore
 open Notifications.Storage
+open PersonalNumberParser
 
 type StartSubscriptionFrom = 
     | Begining

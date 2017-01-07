@@ -35,49 +35,6 @@ type PersonCommandFailures =
     | OptimistictConcurrency
     | UnHandledException of System.Exception
 
-type Result<'success, 'failure> = 
-    | Success of 'success
-    | Failed of 'failure
-
-module Result =
-    let bind f v = 
-        match v with 
-            | Success x -> f x
-            | Failed x -> Failed x
-
-    let apply m = 
-        Success m
-
-    let (>>=) f m = 
-        f m  
-
-    type ResultBuilder() = 
-        member this.Bind (x, f) =
-            bind f x
-
-        member this.Return (x) = 
-            apply x
-
-        member this.ReturnFrom (x) = 
-            printfn "returnFrom %A" x
-            x
-
-        member this.TryFinally(body, compensation) =
-            try 
-                printfn "TryFinally Body"
-                this.ReturnFrom(body())
-            finally 
-                printfn "TryFinally compensation"
-                compensation() 
-
-        member this.Using(disposable:#System.IDisposable, body) =
-            let body' = fun () -> body disposable
-            this.TryFinally(body', fun () -> 
-                    match disposable with 
-                        | null -> () 
-                        | disp -> disp.Dispose())
-
-    let maybe = ResultBuilder()
 
 type EventVersion = int
 

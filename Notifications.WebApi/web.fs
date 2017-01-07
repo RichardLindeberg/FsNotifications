@@ -1,6 +1,6 @@
 namespace Notifications
 open Notifications.Domain
-
+open Notifications.Domain.PersonalNumberParser
 open Suave                 // always open suave
 open Suave.Successful      // for OK-result
 open Suave.Web             // for config
@@ -49,8 +49,12 @@ module SuaveApp  =
             | Choice2Of2 x -> BadRequestFailure x |> Failed
 
     let executeCommand pstr ctx=
-        let pnr = PersonalNumber pstr
+
         Result.maybe{
+                let! pnr = PersonalNumberParser.parse pstr |> 
+                        function 
+                            | Success s -> Success s
+                            | Failed f -> BadRequestFailure f |> Failed 
                 let! correlationId = getXCorrelationId (CorrelationId >> Success) (BadRequestFailure "No acceptHeader" |> Failed) ctx
                 let! bodyAsString = getBodyAsString ctx.request.rawForm 
                 let! deserializedBody = parseIt bodyAsString
@@ -61,12 +65,12 @@ module SuaveApp  =
                         NotificationTypeId = SooneDue 
                         } 
                 let c2 = Notifications.Domain.AddToken cmd 
-                return correlationId, bodyAsString, deserializedBody, c2
+                return correlationId, bodyAsString, deserializedBody, c2, pnr
         }
         |> function 
             | Success x ->
                 match x with 
-                    | (CorrelationId c, body, cmd, c2) -> OK (sprintf "X-Correlation is %s and your pnr is %A and the body was %s and the deserializedBody is %A, command is %A" c pnr body cmd c2) ctx 
+                    | (CorrelationId c, body, cmd, c2, pnr) -> OK (sprintf "X-Correlation is %s and your pnr is %A and the body was %s and the deserializedBody is %A, command is %A" c pnr body cmd c2) ctx 
             | Failed x -> (handleApiFailures x) ctx
 
     let notificationsWeb =
