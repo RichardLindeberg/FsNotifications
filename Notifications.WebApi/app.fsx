@@ -8,7 +8,7 @@
 
 #r "../build/Notifications.Domain.dll"
 #r "../packages/Suave/lib/net40/Suave.dll"
-#load "json.fs"
+#load "commands.fs"
 #load "web.fs"
 open Notifications
 let app = SuaveApp.notificationsWeb
