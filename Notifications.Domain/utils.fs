@@ -32,53 +32,57 @@ module Utils =
 
 
     let mod10Check input = 
-            
-            let stringToIntList s = 
-                [for c in s -> c.ToString() |> int]
-            
-            let strLista = stringToIntList input
-            
-            let woC  = 
-                let l = -1 + List.length strLista 
-                List.take l strLista
+            let stringToIntList = 
+                Seq.map (System.Char.GetNumericValue >> int)
+                >> Seq.toList
+                          
+            let doubleOrFactor x = 
+                if x * 2 > 9 then 
+                    x * 2 - 9 
+                else 
+                    x * 2
 
-            let rec last = function
-                | [x] -> x
-                | hd :: tl -> last tl
-                | _ -> failwith "Empty list."
+            let modByXIsY x y z =
+                z % x = y  
+                
+            let multiply x y = 
+                x * y 
 
-            let data = (woC, last strLista)    
-
-            let intToEntalsLista  = 
-                string >> stringToIntList
-
-        
+            let printIt a =
+                printfn "It is %A" a
+                a 
             
-            let doubleIfEvenIndex index item =
-                match index % 2 with 
-                            | 0 -> item * 2 
-                            | _ -> item  
-                            
-            let checkSiffra i =
-                let c = 10 - i 
-                match c with 
-                    | 10 -> 0
-                    | _ -> c
+            let calcOnEven calcFn  index x =
+                match index % 2 = 0 with 
+                    | true ->  x 
+                    | false -> calcFn x
             
-            let sameNumber i1 i2 = 
-                match i1 = i2 with 
-                    | true -> Some i1
-                    | false -> None
+            let luhnMapping xs =
+                let calculator = calcOnEven doubleOrFactor 
+                List.mapi calculator xs
             
-            (List.collect intToEntalsLista (woC |> List.mapi doubleIfEvenIndex))
+            input 
+            |> stringToIntList
+            // calculate from right to left
+            |> List.rev
+            |> luhnMapping
             |> List.sum
-            |> intToEntalsLista
-            |> last
-            |> checkSiffra
-            |> sameNumber (last strLista)
+            |> multiply 9
+            |> modByXIsY 10 0
             |> function
-                | Some x -> Success input
-                | None -> Failed "Incorrect checksum"
+                | true -> Success input
+                | false -> Failed "Incorrect checksum"
+
+
+            // (List.collect intToEntalsLista (fst data |> List.mapi doubleIfEvenIndex))
+            // |> List.sum
+            // |> (string >> stringToIntList)
+            // |> last
+            // |> checkSiffra
+            // |> sameNumber (snd data)
+            // |> function
+            //     | Some x -> Success input
+            //     | None -> Failed "Incorrect checksum"
 
     let GetGuessedAgeFrom6DigitString ageThreshold (s : string) =
         let twoDigitYear (s : string) =

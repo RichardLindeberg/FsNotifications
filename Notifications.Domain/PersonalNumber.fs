@@ -2,17 +2,24 @@ namespace Notifications.Domain
 module PersonalNumberParser =
     open Utils
     open System
-    type AgeCertainty = 
+    type CenturyCertainty = 
         | Certain
         | Uncertain    
     let pnrStandardFormat birthPart birthNumber controlNumber= 
         sprintf "%s-%s%i" birthPart birthNumber controlNumber
 
-    type PersonalNumber = {BirthPart : string; BirthNumber : string; ControlNumber : int; AgeCertainty : AgeCertainty; DateOfBirth : DateTime} with
+    type PersonalNumber = {BirthPart : string; BirthNumber : string; ControlNumber : int; CenturyCertainty : CenturyCertainty; DateOfBirth : DateTime} with
          override  this.ToString () = pnrStandardFormat this.BirthPart this.BirthNumber this.ControlNumber
-    
+
+    type OrganizationalNumber = {Identifier: string; ControlNumber : int}
+
+    type SwedishIdentifier = 
+        | PersonalNumber of PersonalNumber
+        | CoOrdinationNumber of PersonalNumber
+        | OrganizationalNumber of OrganizationalNumber
+        
     let create bp bn c a db= 
-        {PersonalNumber.BirthPart = bp; AgeCertainty = a; BirthNumber = bn; ControlNumber = c; DateOfBirth = db}
+        {PersonalNumber.BirthPart = bp; CenturyCertainty = a; BirthNumber = bn; ControlNumber = c; DateOfBirth = db}
     
     let verifyPersonalNumber (p : PersonalNumber) =
         let str = 
