@@ -30,59 +30,45 @@ module Utils =
         | (true,int) -> Success int
         | _ -> Failed <| sprintf "Not an DateTime %s" str
 
-
-    let mod10Check input = 
-            let stringToIntList = 
-                Seq.map (System.Char.GetNumericValue >> int)
-                >> Seq.toList
-                          
+    let calculateLuhnCheckSum (input : string) = 
             let doubleOrFactor x = 
                 if x * 2 > 9 then 
                     x * 2 - 9 
                 else 
                     x * 2
 
-            let modByXIsY x y z =
-                z % x = y  
-                
-            let multiply x y = 
-                x * y 
-
-            let printIt a =
-                printfn "It is %A" a
-                a 
-            
             let calcOnEven calcFn  index x =
                 match index % 2 = 0 with 
                     | true ->  x 
                     | false -> calcFn x
             
-            let luhnMapping xs =
+            let luhnMapping =
                 let calculator = calcOnEven doubleOrFactor 
-                List.mapi calculator xs
+                List.mapi calculator
             
-            input 
-            |> stringToIntList
-            // calculate from right to left
-            |> List.rev
-            |> luhnMapping
-            |> List.sum
-            |> multiply 9
-            |> modByXIsY 10 0
+            let bind f m  = 
+                match m with 
+                    | (x, y) -> x , f y
+
+            let toTuple m = 
+                m , m 
+            
+            let (>>=) m f = bind f m
+
+            toTuple input 
+            >>= (Seq.map (System.Char.GetNumericValue >> int))
+            >>= Seq.toList
+            // // calculate from right to left
+            >>= List.rev
+            >>= luhnMapping
+            >>= List.sum
+            >>= (fun x -> 9 * x)
+            >>= (fun x -> x % 10 = 0)
             |> function
-                | true -> Success input
-                | false -> Failed "Incorrect checksum"
+                 | (x ,true) -> Success x
+                 | (x, false) -> sprintf "Incorrect checksum, %A" x |> Failed
+            
 
-
-            // (List.collect intToEntalsLista (fst data |> List.mapi doubleIfEvenIndex))
-            // |> List.sum
-            // |> (string >> stringToIntList)
-            // |> last
-            // |> checkSiffra
-            // |> sameNumber (snd data)
-            // |> function
-            //     | Some x -> Success input
-            //     | None -> Failed "Incorrect checksum"
 
     let GetGuessedAgeFrom6DigitString ageThreshold (s : string) =
         let twoDigitYear (s : string) =
